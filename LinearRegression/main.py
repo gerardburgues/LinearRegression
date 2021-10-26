@@ -1,58 +1,129 @@
-"""This data approach student achievement in secondary education of two Portuguese schools.
-The data attributes include student grades, demographic, social and school related features)
-and it was collected by using school reports and questionnaires.
-Two datasets are provided regarding the performance in two distinct subjects:
-Mathematics (mat) and Portuguese language (por).
-In [Cortez and Silva, 2008], the two datasets were modeled under binary/five-level classification and regression tasks.
-Important note: the target attribute G3 has a strong correlation with attributes G2 and G1.
-This occurs because G3 is the final year grade (issued at the 3rd period),
- while G1 and G2 correspond to the 1st and 2nd period grades.
- It is more difficult to predict G3 without G2 and G1, but such prediction
- is much more useful (see paper source for more details)."""
+"""
+La nostra base de dades tracta sobre el rendiment d’alumnes de secundària en dos escoles portugueses.
+ Els atributs inclueixen dades sobre les seves calificacions,
+ característiques demogràfiques, socials i característiques relacionades amb l’escola.
+  Totes aquestes dades han sigut obtingudes de informes escolars i qüestionaris.
+"""
 
+# Import Libraries
 
-
-from sklearn.datasets import make_regression
 import numpy as np
 import pandas as pd
-
-from matplotlib import pyplot as plt
 import scipy.stats
-
-# Visualitzarem només 3 decimals per mostra
-pd.set_option('display.float_format', lambda x: '%.3f' % x)
-
-# Reading data in CSV files
-def load_dataset(path):
-    dataset = pd.read_csv(path, header=0, delimiter=',')
-    return dataset
-
-# loading example into a dataset --> data
-dataset = load_dataset('student-mat.csv')
-data = dataset.values
-print(dataset)
-x = data[:, :2]
-y = data[:, 2]
-
-print("BBDD size:", dataset.shape)
-print("X dimension:", x.shape)
-print("Y dimension: ", y.shape)
-
-#We show that there is no data with nan or nulls elements
-df = pd.DataFrame(data)
-print(df.isnull().values.any())
-print(dataset.isnull().sum())
-
-##Show numeric data
-
-
 import seaborn as sns
+from matplotlib import pyplot as plt
+from sklearn.preprocessing import MinMaxScaler
+from sklearn.linear_model import LinearRegression
+from sklearn.metrics import r2_score
 
-# Mirem la correlació entre els atributs d'entrada per entendre millor les dades
-correlacio = dataset.corr()
 
-plt.figure()
 
-ax = sns.scatterplot(x='G3', y='age', data= dataset)
-ax1 = sns.scatterplot(x='G1', y='G3', data= dataset)
-plt.show()
+def DataInfo():
+    """This function give us information about our table and our data
+    shape, head, description, null values..."""
+    print("We see all the variables that we have in our dataset: \n", data.head)
+
+    print("What shape our CSV has ? \n",data.shape)
+
+    print("Detailed information: \n", data.describe)
+
+    print("Null values ? \n", data.isnull().sum())
+
+def DropColumns(data):
+    """We are droping those columns which we think are not worth having
+    to generate a good prediction.
+    """
+    return data.drop(
+        ['school', 'famsize', 'Pstatus', 'Fedu', 'Medu', 'Fjob', 'Mjob', 'reason', 'guardian', 'traveltime', 'famsup',
+         'nursery', 'internet', 'goout', 'Dalc'], axis=1)
+def plotsRelation(data):
+    """This functions will show us the relation between each dataset component
+    (Those variables we have deleted).
+     """
+    sns.pairplot(data)
+    plt.show()
+    print("unique? -->",data.nunique())
+    print("new data head: \n", data.head)
+
+def HeatMap(data):
+
+    """Showing the heatmap from
+    1. Can be all the data
+    2. Can be just those specific rows (Not counting eliminated rows).
+    """
+    fig, ax = plt.subplots(nrows=1, ncols=1, figsize=(15, 12), )
+
+    ax = sns.heatmap(data=data.corr(), ax=ax, annot=True, cmap="coolwarm")
+    ax.set_xlabel('Features', fontdict={"fontsize": 16})
+    ax.set_ylabel('Features', fontdict={"fontsize": 16})
+    for _, s in ax.spines.items():
+        s.set_linewidth(5)
+        s.set_color('cyan')
+    ax.set_title('Correlation between different Features', loc="center",
+                 fontdict={"fontsize": 16, "fontweight": "bold", "color": "white"}, )
+    plt.savefig("plotcorrelation.png", bbox_inches="tight")
+    plt.show()
+
+def Mse(v1, v2):
+    """ Apply MSE formula"""
+    return ((v1 - v2)**2).mean()
+
+def Regression(x, y):
+
+    """ Apply the Regression methods with libary"""
+    # Creem un objecte de regressió de sklearn
+
+    regr = LinearRegression()
+
+    # Entrenem el model per a predir y a partir de x
+    regr.fit(x, y)
+
+    # Retornem el model entrenat
+    return regr
+
+def TransformingStrings(data):
+
+    """
+    We have to transform data so we don't do the model with a character inside our dataset.
+    """
+    # No --> 0
+    # Yes -->1
+    data['schoolsup'] = data['schoolsup'].replace(['no'], 0)
+    data['schoolsup'] = data['schoolsup'].replace(['yes'], 1)
+    data['sex'] = data['sex'].replace(['M'], 0)
+    data['sex'] = data['sex'].replace(['F'], 1)
+    data['address'] = data['address'].replace(['U'], 0)
+    data['address'] = data['address'].replace(['R'], 1)
+    data['paid'] = data['paid'].replace(['no'], 0)
+    data['paid'] = data['paid'].replace(['yes'], 1)
+    data['activities'] = data['activities'].replace(['no'], 0)
+    data['activities'] = data['activities'].replace(['yes'], 1)
+    data['romantic'] = data['romantic'].replace(['no'], 0)
+    data['romantic'] = data['romantic'].replace(['yes'], 1)
+    data['higher'] = data['higher'].replace(['no'], 0)
+    data['higher'] = data['higher'].replace(['yes'], 1)
+    return data
+
+if __name__ == "__main__":
+    # Lets Read the data from our csv
+    data = pd.read_csv("student-mat.csv")
+    DataInfo()
+    data = DropColumns(data)
+    plotsRelation(data)
+    HeatMap(data)
+    data = TransformingStrings(data)
+    print(data)
+    #Values x and y
+    x = data.iloc[:, :-1]
+    y = data.iloc[:, -1]
+    print("HEY   <",x)
+    print(y)
+
+
+
+
+
+else:
+    print("File one executed when imported")
+
+print("hi")
