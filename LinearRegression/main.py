@@ -182,6 +182,10 @@ def RegressionAllVariables(x, y, value):
     print("R2 score: ", r2)
 
 def split_data(x, y, train_ratio=0.85):
+    """
+    Spliting data 85% training 15% test
+
+    """
     indices = np.arange(x.shape[0])
     np.random.shuffle(indices)
     n_train = int(np.floor(x.shape[0]*train_ratio))
