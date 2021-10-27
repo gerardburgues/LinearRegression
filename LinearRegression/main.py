@@ -17,7 +17,7 @@ from sklearn.linear_model import LinearRegression
 from sklearn.metrics import r2_score
 from sklearn.decomposition import PCA
 
-from descensgradiaent import LinearRegression as lr
+
 
 
 
